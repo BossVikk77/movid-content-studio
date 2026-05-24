@@ -1,0 +1,51 @@
+name: Deploy Movid Academy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:   # allow manual trigger from GitHub Actions tab
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Inject secrets into HTML
+        env:
+          GROQ_KEY: ${{ secrets.GROQ_KEY }}
+          HCTI_UID: ${{ secrets.HCTI_UID }}
+          HCTI_KEY: ${{ secrets.HCTI_KEY }}
+        run: |
+          # Replace placeholder tokens with real secret values
+          sed -i "s|__GROQ_KEY__|${GROQ_KEY}|g" movid-academy.html
+          sed -i "s|__HCTI_UID__|${HCTI_UID}|g" movid-academy.html
+          sed -i "s|__HCTI_KEY__|${HCTI_KEY}|g" movid-academy.html
+          echo "✅ Secrets injected successfully."
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'   # deploy the whole repo root (index = movid-academy.html)
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
