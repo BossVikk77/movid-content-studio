@@ -513,10 +513,21 @@ textarea.cap{background:#0d0d0d;border:1px solid #1a1a1a;border-radius:8px;paddi
       </div>
 
       <div class="card">
-        <div class="card-title">🔗 Make.com Webhook (Scheduled Posting)</div>
-        <p style="font-size:12px;color:#444;margin-bottom:.75rem">Paste your Make.com webhook URL to enable auto-scheduling to Facebook, Instagram, and LinkedIn.</p>
+        <div class="card-title">🔗 Make.com Webhook (Instant Post)</div>
+        <p style="font-size:12px;color:#444;margin-bottom:.75rem">Triggers an immediate post to all platforms via Make.com.</p>
         <input type="url" id="make-webhook" placeholder="https://hook.eu1.make.com/...">
         <button class="btn btn-purple btn-sm mt1" onclick="saveMakeWebhook()">Save Webhook</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🗓 Make.com Webhook (Auto-Scheduler)</div>
+        <p style="font-size:12px;color:#444;margin-bottom:.75rem">Stores posts in Make.com Data Store for automatic daily publishing. Use the <strong>Schedule All Approved</strong> button after generating content.</p>
+        <input type="url" id="schedule-webhook" placeholder="https://hook.eu1.make.com/...">
+        <div style="margin-top:.6rem;margin-bottom:.6rem">
+          <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Default Post Time (your local time)</label>
+          <input type="time" id="post-time" value="09:00" style="width:140px">
+        </div>
+        <button class="btn btn-purple btn-sm" onclick="saveScheduleSettings()">Save</button>
       </div>
     </div>
 
@@ -650,6 +661,10 @@ window.onload = () => {
   if(uid) document.getElementById('hcti-uid').value = uid;
   if(hkey) document.getElementById('hcti-key').value = hkey;
   if(webhook) document.getElementById('make-webhook').value = webhook;
+  const schedWh = localStorage.getItem('ma_schedule_webhook');
+  const postTime = localStorage.getItem('ma_post_time');
+  if(schedWh)  document.getElementById('schedule-webhook').value = schedWh;
+  if(postTime) document.getElementById('post-time').value = postTime;
 
   // Set default dates
   const today = new Date().toISOString().slice(0,10);
@@ -701,6 +716,56 @@ function saveMakeWebhook() {
   const u = document.getElementById('make-webhook').value.trim();
   if(u) localStorage.setItem('ma_make_webhook', u);
   snack('Make.com webhook saved!');
+}
+
+function saveScheduleSettings() {
+  const u = document.getElementById('schedule-webhook').value.trim();
+  const t = document.getElementById('post-time').value;
+  if(u) localStorage.setItem('ma_schedule_webhook', u);
+  if(t) localStorage.setItem('ma_post_time', t);
+  snack('Schedule settings saved!');
+  renderResults(); // refresh to show Schedule All button
+}
+
+async function scheduleAllApproved() {
+  const webhook = localStorage.getItem('ma_schedule_webhook');
+  const postTime = localStorage.getItem('ma_post_time') || '09:00';
+  if(!webhook){ snack('Add your Schedule webhook in Settings first.'); return; }
+
+  const ids = Object.keys(results);
+  const approved = ids.filter(id => approvals[id] !== 'no'); // skip rejected
+  if(!approved.length){ snack('No approved posts to schedule.'); return; }
+
+  snack(`Scheduling ${approved.length} posts…`);
+  let sent = 0, failed = 0;
+
+  for(const id of approved){
+    const r = results[id];
+    const payload = {
+      action: 'schedule',
+      scheduleDate: r.schedDate || new Date().toISOString().slice(0,10),
+      scheduleTime: postTime,
+      postType:     r.postType  || '',
+      topic:        r.topic     || '',
+      imageHook:    r.hook      || '',
+      imageBody:    r.imgbody   || '',
+      facebook:     document.getElementById('cap-'+id+'-facebook')?.value  || r.facebook  || '',
+      instagram:    document.getElementById('cap-'+id+'-instagram')?.value || r.instagram || '',
+      linkedin:     document.getElementById('cap-'+id+'-linkedin')?.value  || r.linkedin  || '',
+      tiktok:       document.getElementById('cap-'+id+'-tiktok')?.value    || r.tiktok    || '',
+      threads:      document.getElementById('cap-'+id+'-threads')?.value   || r.threads   || ''
+    };
+    try {
+      await fetch(webhook, {
+        method: 'POST',
+        headers: {'content-type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      sent++;
+    } catch(e) { failed++; }
+  }
+
+  snack(`✓ ${sent} post${sent===1?'':'s'} scheduled${failed?` (${failed} failed)`:''}!`);
 }
 function saveBrand() {
   BRAND.name = document.getElementById('s-name').value;
@@ -1049,7 +1114,9 @@ function renderResults(){
   if(!ids.length){sec.innerHTML='';return;}
   const plats=[{k:'facebook',l:'Facebook'},{k:'instagram',l:'Instagram'},{k:'linkedin',l:'LinkedIn'},{k:'tiktok',l:'TikTok'},{k:'threads',l:'Threads'}];
 
-  sec.innerHTML='<div style="font-size:13px;font-weight:600;color:#bbb;margin-bottom:.75rem">'+ids.length+' post'+(ids.length===1?'':'s')+' generated</div>'+
+  const schedWh=localStorage.getItem('ma_schedule_webhook');
+  const schedBtn=schedWh?`<button class="btn btn-purple btn-sm" onclick="scheduleAllApproved()" style="margin-left:auto">🗓 Schedule All Approved</button>`:'';
+  sec.innerHTML='<div style="display:flex;align-items:center;gap:10px;margin-bottom:.75rem"><div style="font-size:13px;font-weight:600;color:#bbb">'+ids.length+' post'+(ids.length===1?'':'s')+' generated</div>'+schedBtn+'</div>'+
   ids.map(id=>{
     const r=results[id];
     return `<div class="rcard">
