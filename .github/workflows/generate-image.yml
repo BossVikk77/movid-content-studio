@@ -47,3 +47,8 @@ jobs:
           git add images/
           git diff --staged --quiet || git commit -m "img: ${{ inputs.filename }}"
           git push
+
+      - name: Trigger site deploy
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run deploy.yml --repo BossVikk77/movid-content-studio --ref main
