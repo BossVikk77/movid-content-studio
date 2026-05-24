@@ -1,5 +1,6 @@
 # Never commit secrets
 .env
+config.js
 
 # macOS
 .DS_Store

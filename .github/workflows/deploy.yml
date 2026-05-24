@@ -26,17 +26,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Inject secrets into HTML
+      - name: Generate config.js from secrets
         env:
           GROQ_KEY: ${{ secrets.GROQ_KEY }}
           HCTI_UID: ${{ secrets.HCTI_UID }}
           HCTI_KEY: ${{ secrets.HCTI_KEY }}
         run: |
-          # Replace placeholder tokens with real secret values
-          sed -i "s|__GROQ_KEY__|${GROQ_KEY}|g" movid-academy.html
-          sed -i "s|__HCTI_UID__|${HCTI_UID}|g" movid-academy.html
-          sed -i "s|__HCTI_KEY__|${HCTI_KEY}|g" movid-academy.html
-          echo "✅ Secrets injected successfully."
+          cat > config.js <<EOF
+          window.__MOVID_CONFIG__ = {
+            GROQ_KEY: '${GROQ_KEY}',
+            HCTI_UID: '${HCTI_UID}',
+            HCTI_KEY: '${HCTI_KEY}'
+          };
+          EOF
+          echo "✅ config.js generated."
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
