@@ -102,6 +102,7 @@ a{color:var(--teal);text-decoration:none}
 label{font-size:11px;color:#555;display:block;margin-bottom:3px}
 input,select,textarea{width:100%;background:#0d0d0d;border:1px solid #1e1e1e;border-radius:7px;color:#fff;padding:7px 10px;font-size:13px;outline:none;font-family:Arial,sans-serif;transition:border-color .15s}
 input:focus,select:focus,textarea:focus{border-color:var(--teal)}
+.api-key-field{-webkit-text-security:disc;text-security:disc}
 select option{background:#111}
 input[type=date]{color-scheme:dark}
 
@@ -248,7 +249,7 @@ textarea.cap{background:#0d0d0d;border:1px solid #1a1a1a;border-radius:8px;paddi
     <div class="step-block"><p><span class="step-n">3</span>Paste it below and click Save</p></div>
     <div style="margin:.9rem 0">
       <label>Groq API Key</label>
-      <input type="password" id="modal-api-key" placeholder="gsk_..." autocomplete="off">
+      <input type="text" class="api-key-field" id="modal-api-key" placeholder="gsk_..." autocomplete="off">
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-purple" onclick="saveApiKeyModal()">Save & Start</button>
@@ -499,15 +500,15 @@ textarea.cap{background:#0d0d0d;border:1px solid #1a1a1a;border-radius:8px;paddi
       <div class="card">
         <div class="card-title">🔑 Groq API Key</div>
         <p style="font-size:12px;color:#444;margin-bottom:.75rem">Free at <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> — no credit card needed.</p>
-        <input type="password" id="api-key-input" placeholder="gsk_..." style="margin-bottom:.75rem" autocomplete="off">
+        <input type="text" class="api-key-field" id="api-key-input" placeholder="gsk_..." style="margin-bottom:.75rem" autocomplete="off">
         <button class="btn btn-purple btn-sm" onclick="saveApiKeySettings()">Save Key</button>
       </div>
 
       <div class="card">
         <div class="card-title">🖼 HCTI Image API</div>
         <p style="font-size:12px;color:#444;margin-bottom:.75rem">For PNG downloads. Free: 50/month at <a href="https://htmlcsstoimage.com" target="_blank">htmlcsstoimage.com</a>.</p>
-        <div style="margin-bottom:.5rem"><label>User ID</label><input type="password" id="hcti-uid" placeholder="User ID" autocomplete="off"></div>
-        <div style="margin-bottom:.75rem"><label>API Key</label><input type="password" id="hcti-key" placeholder="API Key" autocomplete="off"></div>
+        <div style="margin-bottom:.5rem"><label>User ID</label><input type="text" class="api-key-field" id="hcti-uid" placeholder="User ID" autocomplete="off"></div>
+        <div style="margin-bottom:.75rem"><label>API Key</label><input type="text" class="api-key-field" id="hcti-key" placeholder="API Key" autocomplete="off"></div>
         <button class="btn btn-purple btn-sm" onclick="saveHCTI()">Save</button>
       </div>
 
